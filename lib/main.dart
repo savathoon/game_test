@@ -1,5 +1,3 @@
-
-
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
@@ -26,10 +24,10 @@ class DemoGame extends FlameGame with KeyboardEvents {
   final double _moveSpeed = 100;
   int _horizontalDirection = 0;
   final Vector2 _velocity = Vector2.zero();
-  Vector2 position = Vector2(864,1000);
+  Vector2 position = Vector2(864, 1000);
 
   @override
-  Future<void>? onLoad() async{
+  Future<void>? onLoad() async {
     cameraComponent = CameraComponent(world: world);
     addAll([cameraComponent, world]);
 
@@ -42,27 +40,22 @@ class DemoGame extends FlameGame with KeyboardEvents {
     );
 
     final spriteImage = await images.load('rogue.png');
-    final spriteSheet = SpriteSheet(
-      image: spriteImage,
-      srcSize: Vector2.all(64)
-    );
+    final spriteSheet =
+        SpriteSheet(image: spriteImage, srcSize: Vector2.all(64));
     world.add(
       TiledComponent(
-        await RenderableTiledMap.fromTiledMap(
-          tiledMap,
-          Vector2(128, 64),
-        ),
-        position: Vector2(0,0)
-      ),
+          await RenderableTiledMap.fromTiledMap(
+            tiledMap,
+            Vector2(128, 64),
+          ),
+          position: Vector2(0, 0)),
     );
     // Initialize player animations
     _walkAnimation = spriteSheet.createAnimation(row: 7, stepTime: 0.1);
     _idleAnimation = spriteSheet.createAnimation(row: 5, stepTime: 0.1);
 
-    rogue = SpriteAnimationComponent(
-      animation: _idleAnimation,
-      position: position
-    );
+    rogue =
+        SpriteAnimationComponent(animation: _idleAnimation, position: position);
 
     world.add(rogue);
 
@@ -84,12 +77,11 @@ class DemoGame extends FlameGame with KeyboardEvents {
     final isUp = keysPressed.contains(LogicalKeyboardKey.arrowUp);
     final isDown = keysPressed.contains(LogicalKeyboardKey.arrowDown);
 
-    if (isKeyDown){
+    if (isKeyDown) {
       _horizontalDirection = 0;
-      if(isLeft){
+      if (isLeft) {
         _horizontalDirection = -1;
-      }
-      else if(isRight) {
+      } else if (isRight) {
         _horizontalDirection = 1;
       }
       // TODO: up, down movement
@@ -102,12 +94,13 @@ class DemoGame extends FlameGame with KeyboardEvents {
   // Credit: @eugene-kleshnin
   // https://hackernoon.com/teaching-your-character-to-run-in-flame
   @override
-  void update(double dt){
+  void update(double dt) {
     super.update(dt);
     _velocity.x = _horizontalDirection * _moveSpeed;
     rogue.position += _velocity * dt;
 
-    if ((_horizontalDirection < 0 && rogue.scale.x > 0) || (_horizontalDirection > 0 && rogue.scale.x < 0)) {
+    if ((_horizontalDirection < 0 && rogue.scale.x > 0) ||
+        (_horizontalDirection > 0 && rogue.scale.x < 0)) {
       rogue.flipHorizontally();
     }
     updateAnimation();
