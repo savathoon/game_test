@@ -1,110 +1,49 @@
 import 'package:flame/components.dart';
-import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
-import 'package:flame/input.dart';
-import 'package:flame/sprite.dart';
 import 'package:flame_tiled/flame_tiled.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' as Widgets;
+
+import 'assets.dart';
+import 'controller.dart';
 
 void main() {
   Widgets.WidgetsFlutterBinding.ensureInitialized();
+  //final game = EcsGame();
   final game = DemoGame();
   Widgets.runApp(GameWidget(game: game));
 }
 
-class DemoGame extends FlameGame with KeyboardEvents {
+class DemoGame extends FlameGame with Controller {
   final world = World();
   late final CameraComponent cameraComponent;
-  late final SpriteAnimation _idleAnimation;
-  late final SpriteAnimation _walkAnimation;
-  late final SpriteAnimation _attackAnimation;
-  late final rogue;
+  late final Map<String, SpriteAnimation> _animations;
+  late final SpriteAnimationComponent rogue;
 
   //move to rogue class
   final double _moveSpeed = 100;
-  int _horizontalDirection = 0;
-  int _verticalDirection = 0;
   double _attackTimer = 0;
   final Vector2 _velocity = Vector2.zero();
-  Vector2 position = Vector2(864, 1000);
 
   @override
   Future<void>? onLoad() async {
     cameraComponent = CameraComponent(world: world);
     addAll([cameraComponent, world]);
 
-    final contents = await Flame.bundle.loadString(
-      'assets/map/demo.tmx',
-    );
-    final tiledMap = await TiledMap.fromString(
-      contents,
-      FlameTsxProvider.parse,
-    );
+    world.add(TiledComponent(await loadMap()));
 
-    final spriteImage = await images.load('rogue.png');
-    final spriteSheet =
-        SpriteSheet(image: spriteImage, srcSize: Vector2.all(64));
-    world.add(
-      TiledComponent(
-          await RenderableTiledMap.fromTiledMap(
-            tiledMap,
-            Vector2(128, 64),
-          ),
-          position: Vector2(0, 0)),
-    );
     // Initialize player animations
-    _walkAnimation = spriteSheet.createAnimation(row: 7, stepTime: 0.1);
-    _idleAnimation = spriteSheet.createAnimation(row: 5, stepTime: 0.1);
-    _attackAnimation = spriteSheet.createAnimation(row: 8, stepTime: 0.1);
-
+    _animations = await loadRogue();
     rogue = SpriteAnimationComponent(
-        animation: _idleAnimation, position: position, anchor: Anchor.center);
+      animation: _animations["idle"],
+      position: Vector2(864, 1000),
+      anchor: Anchor.center,
+    );
 
     world.add(rogue);
 
-    cameraComponent.viewfinder.position = Vector2(1264, 1000);
-    cameraComponent.viewfinder.zoom = 1;
     cameraComponent.follow(rogue);
 
     return super.onLoad();
-  }
-
-  @override
-  Widgets.KeyEventResult onKeyEvent(
-    Widgets.RawKeyEvent event,
-    Set<LogicalKeyboardKey> keysPressed,
-  ) {
-    final isKeyDown = event is RawKeyDownEvent;
-
-    final isLeft = keysPressed.contains(LogicalKeyboardKey.arrowLeft);
-    final isRight = keysPressed.contains(LogicalKeyboardKey.arrowRight);
-    final isUp = keysPressed.contains(LogicalKeyboardKey.arrowUp);
-    final isDown = keysPressed.contains(LogicalKeyboardKey.arrowDown);
-    final isAttack = keysPressed.contains(LogicalKeyboardKey.space);
-
-    if (isKeyDown) {
-      if (isAttack) {
-        _attackTimer = 1;
-      } else {
-        _horizontalDirection = 0;
-        _verticalDirection = 0;
-        if (isLeft) {
-          _horizontalDirection = -1;
-        } else if (isRight) {
-          _horizontalDirection = 1;
-        }
-
-        if (isUp) {
-          _verticalDirection = -1;
-        } else if (isDown) {
-          _verticalDirection = 1;
-        }
-      }
-
-      return Widgets.KeyEventResult.handled;
-    }
-    return Widgets.KeyEventResult.ignored;
   }
 
   // Credit: @eugene-kleshnin
@@ -113,14 +52,24 @@ class DemoGame extends FlameGame with KeyboardEvents {
   void update(double dt) {
     super.update(dt);
 
+    if (hasInput(GameInput.attack)) {
+      _attackTimer = 1;
+    }
+
+    final horizontalDirection = (hasInput(GameInput.left) ? -1 : 0) +
+        (hasInput(GameInput.right) ? 1 : 0);
+    final verticalDirection =
+        (hasInput(GameInput.up) ? -1 : 0) + (hasInput(GameInput.down) ? 1 : 0);
+
+    _velocity.x = horizontalDirection * _moveSpeed;
+    _velocity.y = 0.5 * verticalDirection * _moveSpeed;
+
     if (_attackTimer <= 0) {
-      _velocity.x = _horizontalDirection * _moveSpeed;
-      _velocity.y = 0.5 * _verticalDirection * _moveSpeed;
       rogue.position += _velocity * dt;
     }
 
-    if ((_horizontalDirection < 0 && rogue.scale.x > 0) ||
-        (_horizontalDirection > 0 && rogue.scale.x < 0)) {
+    if ((horizontalDirection < 0 && rogue.scale.x > 0) ||
+        (horizontalDirection > 0 && rogue.scale.x < 0)) {
       rogue.flipHorizontally();
     }
     updateAnimation(dt);
@@ -128,12 +77,12 @@ class DemoGame extends FlameGame with KeyboardEvents {
 
   void updateAnimation(double dt) {
     if (_attackTimer > 0) {
-      rogue.animation = _attackAnimation;
+      rogue.animation = _animations["attack"];
       _attackTimer -= dt;
-    } else if (_horizontalDirection == 0 && _verticalDirection == 0) {
-      rogue.animation = _idleAnimation;
+    } else if (_velocity.isZero()) {
+      rogue.animation = _animations["idle"];
     } else {
-      rogue.animation = _walkAnimation;
+      rogue.animation = _animations["walk"];
     }
   }
 }

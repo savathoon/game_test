@@ -35,6 +35,6 @@ flutter:
     - assets/images/
     - assets/images/rogue.png
     - assets/images/seasons_tiles.png
-    - assets/map/
-    - assets/map/demo.tmx
+    - assets/tiles/
+    - assets/tiles/demo.tmx
     - assets/tiles/seasons_tiles.tsx
