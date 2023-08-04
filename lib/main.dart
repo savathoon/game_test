@@ -49,9 +49,7 @@ class DemoGame extends FlameGame with Controller {
   // Credit: @eugene-kleshnin
   // https://hackernoon.com/teaching-your-character-to-run-in-flame
   @override
-  void update(double dt) {
-    super.update(dt);
-
+  onInputChange() {
     if (hasInput(GameInput.attack)) {
       _attackTimer = 1;
     }
@@ -64,25 +62,33 @@ class DemoGame extends FlameGame with Controller {
     _velocity.x = horizontalDirection * _moveSpeed;
     _velocity.y = 0.5 * verticalDirection * _moveSpeed;
 
-    if (_attackTimer <= 0) {
-      rogue.position += _velocity * dt;
-    }
-
     if ((horizontalDirection < 0 && rogue.scale.x > 0) ||
         (horizontalDirection > 0 && rogue.scale.x < 0)) {
       rogue.flipHorizontally();
     }
-    updateAnimation(dt);
+
+    updateAnimation();
   }
 
-  void updateAnimation(double dt) {
+  void updateAnimation() {
     if (_attackTimer > 0) {
       rogue.animation = _animations["attack"];
-      _attackTimer -= dt;
     } else if (_velocity.isZero()) {
       rogue.animation = _animations["idle"];
     } else {
       rogue.animation = _animations["walk"];
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    if (_attackTimer > 0) {
+      _attackTimer -= dt;
+      updateAnimation();
+    } else {
+      rogue.position += _velocity * dt;
     }
   }
 }

@@ -48,6 +48,8 @@ mixin Controller on Game implements KeyboardEvents {
     return _commands.contains(input);
   }
 
+  void onInputChange() {}
+
   @override
   KeyEventResult onKeyEvent(
     RawKeyEvent event,
@@ -83,6 +85,10 @@ mixin Controller on Game implements KeyboardEvents {
       }
     }
     _commands = commands;
+
+    if (result == KeyEventResult.handled) {
+      onInputChange();
+    }
 
     return result;
   }
