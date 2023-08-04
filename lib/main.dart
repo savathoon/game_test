@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart' as Widgets;
 
 import 'assets.dart';
 import 'controller.dart';
+import 'ecs/game.dart';
 
 void main() {
   Widgets.WidgetsFlutterBinding.ensureInitialized();
