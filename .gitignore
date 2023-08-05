@@ -48,3 +48,8 @@ app.*.map.json
 /macos/
 /linux/
 
+**.tiled-project
+**.tiled-session
+
+ios/Runner.xcodeproj/project.pbxproj
+

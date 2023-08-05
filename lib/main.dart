@@ -27,10 +27,11 @@ class DemoGame extends FlameGame with Controller {
 
   @override
   Future<void>? onLoad() async {
+    await super.onLoad();
     cameraComponent = CameraComponent(world: world);
     addAll([cameraComponent, world]);
 
-    world.add(TiledComponent(await loadMap()));
+    world.add(TiledComponent(await loadObjectMap()));
 
     // Initialize player animations
     _animations = await loadRogue();
@@ -98,7 +99,7 @@ class DemoGame extends FlameGame with Controller {
 /** 
 class IsometricTileMapExample extends FlameGame with MouseMovementDetector {
   static const String description = '''
-    Shows an example of how to use the `IsometricTileMapComponent`.\n\n
+    Shows an example of how to use the `IsometricTileMapComponent`./n/n
     Move the mouse over the board to see a selector appearing on the tiles.
   ''';
 

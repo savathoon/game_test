@@ -3,6 +3,10 @@ import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 
+Future<RenderableTiledMap> loadObjectMap() async {
+  return await RenderableTiledMap.fromFile("farm_csv.tmx", Vector2(256, 128));
+}
+
 Future<RenderableTiledMap> loadMap() async {
   return await RenderableTiledMap.fromFile("demo.tmx", Vector2(128, 64));
 }
